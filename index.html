@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escudo Naval | EulerGames</title>
+
+  <style>
+    :root {
+      --bg: #07131f;
+      --panel: #0f2233;
+      --panel-2: #132f46;
+      --text: #e9f7ff;
+      --muted: #9fc2d8;
+      --accent: #48c6ff;
+      --danger: #ff5e5e;
+      --good: #5dffb1;
+      --warning: #ffd166;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, #183b59, transparent 35%),
+        linear-gradient(135deg, #06111b, #081a27 50%, #02080d);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 250px 1fr 310px;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .panel {
+      background: rgba(15, 34, 51, 0.88);
+      border: 1px solid rgba(105, 190, 255, 0.18);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(8px);
+      overflow: auto;
+    }
+
+    .panel h1 {
+      margin: 0 0 4px;
+      font-size: 1.35rem;
+      letter-spacing: 0.5px;
+    }
+
+    .panel h2 {
+      margin: 18px 0 8px;
+      font-size: 0.95rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-width: 0;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #082033;
+      border: 1px solid rgba(105, 190, 255, 0.25);
+      box-shadow: 0 12px 45px rgba(0, 0, 0, 0.4);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #092236;
+    }
+
+    .hud-message {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      max-width: min(520px, calc(100% - 32px));
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(3, 13, 22, 0.68);
+      border: 1px solid rgba(91, 203, 255, 0.25);
+      color: #eaf8ff;
+      font-size: 0.92rem;
+      line-height: 1.35;
+      pointer-events: none;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.92rem;
+    }
+
+    .stat span:first-child {
+      color: var(--muted);
+    }
+
+    .stat strong {
+      color: white;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .big-number {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: var(--warning);
+      line-height: 1;
+      margin: 4px 0 8px;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: white;
+      font-weight: 700;
+      background: linear-gradient(180deg, #1c6b94, #14435f);
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 5px 14px rgba(0,0,0,0.28);
+      transition: transform 0.08s ease, filter 0.12s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.12);
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    button.primary {
+      background: linear-gradient(180deg, #e43b3b, #9e1f2c);
+      font-size: 1rem;
+      padding: 13px 12px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    button.secondary {
+      background: linear-gradient(180deg, #31536d, #1a3145);
+    }
+
+    button.good {
+      background: linear-gradient(180deg, #20b972, #13764a);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.2);
+    }
+
+    .angle-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid rgba(105, 190, 255, 0.28);
+      border-radius: 12px;
+      background: rgba(5, 16, 26, 0.9);
+      color: white;
+      padding: 10px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(72, 198, 255, 0.18);
+    }
+
+    .keys {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+      color: #dff5ff;
+      font-size: 0.75rem;
+      margin: 2px 2px 2px 0;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 1050px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        height: auto;
+        min-height: 100vh;
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-wrap {
+        height: 62vh;
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="panel">
+      <h1>Escudo Naval</h1>
+      <div class="subtitle">
+        EulerGames · Intercepción con movimiento rectilíneo uniforme.
+      </div>
+
+      <h2>Ángulo de disparo</h2>
+      <div class="big-number"><span id="angleDisplay">35.0</span>°</div>
+
+      <div class="angle-row">
+        <input id="angleInput" type="number" min="0" max="180" step="0.1" value="35.0" />
+      </div>
+
+      <div class="button-grid">
+        <button id="angleMinus1">−1°</button>
+        <button id="anglePlus1">+1°</button>
+        <button id="angleMinusFine">−0.1°</button>
+        <button id="anglePlusFine">+0.1°</button>
+      </div>
+
+      <button id="fireButton" class="primary">Disparar</button>
+      <button id="pauseButton" class="secondary" style="width:100%; margin-top:8px;">Pausar</button>
+      <button id="soundButton" class="secondary" style="width:100%; margin-top:8px;">🔇 Activar sonido</button>
+      <button id="restartButton" class="good" style="width:100%; margin-top:8px;">Reiniciar</button>
+
+      <h2>Controles</h2>
+      <div class="keys">
+        <span class="badge">← −1°</span>
+        <span class="badge">→ +1°</span>
+        <span class="badge">↓ −0.1°</span>
+        <span class="badge">↑ +0.1°</span>
+        <span class="badge">Espacio: disparar</span>
+        <span class="badge">Enter: pausar</span>
+        <span class="badge">Sonido opcional</span>
+      </div>
+
+      <div class="footer-note">
+        Consejo: calcula el punto de intercepción usando posición, velocidad y tiempo. El sonido es opcional y se activa manualmente.
+      </div>
+    </aside>
+
+    <main class="canvas-wrap">
+      <canvas id="gameCanvas"></canvas>
+      <div id="hudMessage" class="hud-message"></div>
+    </main>
+
+    <aside class="panel">
+      <h2>Alerta del ataque</h2>
+
+      <div class="stat">
+        <span>Estado</span>
+        <strong id="stateText">Preparando</strong>
+      </div>
+
+    <div class="stat">
+        <span>Tiempo global</span>
+        <strong id="globalTimeText">0.0 s</strong>
+    </div>
+
+    <div class="stat">
+        <span>El misil aparece en</span>
+        <strong id="spawnTimeText">30.0 s</strong>
+    </div>
+
+      <div class="stat">
+        <span>Entrada en campo visual</span>
+        <strong id="countdownText">30.0 s</strong>
+      </div>
+
+      <div class="stat">
+        <span>Posición inicial</span>
+        <strong id="p0Text">---</strong>
+      </div>
+
+      <div class="stat">
+        <span>Punto de impacto</span>
+        <strong id="pfText">---</strong>
+      </div>
+
+      <div class="stat">
+        <span>Vel. enemiga</span>
+        <strong id="enemySpeedText">---</strong>
+      </div>
+
+      <div class="stat">
+        <span>Vel. defensiva</span>
+        <strong id="defenderSpeedText">---</strong>
+      </div>
+
+      <h2>Marcador</h2>
+
+      <div class="stat">
+        <span>Interceptados</span>
+        <strong id="interceptsText">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>Impactos recibidos</span>
+        <strong id="hitsText">0/3</strong>
+      </div>
+
+      <div class="stat">
+        <span>Ataque actual</span>
+        <strong id="attackNumberText">1</strong>
+      </div>
+
+      <h2>Notas</h2>
+      <div class="footer-note">
+        La línea azul muestra la trayectoria del misil enemigo.
+        La línea roja muestra la dirección actual de disparo.
+        La intercepción ocurre cuando las regiones circulares de ambos misiles se solapan.
+        Cuidado: tu propio misil también puede impactar el barco.
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ============================================================
+    // ESCUDO NAVAL · EulerGames
+    // Primera versión jugable en HTML + CSS + JavaScript puro.
+    // ============================================================
+
+    const CONFIG = {
+      // Dominio del plano cartesiano en metros.
+      xMin: -50,
+      xMax: 1000,
+      yMin: -50,
+      yMax: 600,
+
+      // Barco: región elíptica de impacto, en metros.
+      shipCenter: { x: 180, y: 300 },
+      shipRadiusX: 70,
+      shipRadiusY: 35,
+
+      // Punto fijo de disparo del misil defensor.
+      defenderBase: { x: 0, y: 0 },
+
+      // Radios de los misiles.
+      // Si sientes que el juego castiga demasiado al estudiante, sube estos valores.
+      // Si sientes que acierta aun calculando mal, bájalos.
+      enemyMissileRadius: 12.5,
+      defenderMissileRadius: 12.5,
+
+        // Velocidad defensiva aleatoria por ataque.
+        // El usuario la conoce antes de disparar.
+        defenderSpeedMin: 40.0,
+        defenderSpeedMax: 220.0,
+
+        // Velocidad enemiga.
+        // Aumenta lentamente, pero con variación para que no todos los ataques se sientan iguales.
+        enemyBaseSpeed: 50.0,
+        enemySpeedGrowth: 10,
+        enemySpeedNoise: 15.0,
+        enemyMinSpeed: 40.0,
+        enemyMaxSpeed: 220.0,
+
+      // Aceleraciones. Por ahora son cero porque la vista es superior.
+      enemyAcceleration: { x: 0, y: 0 },
+      defenderAcceleration: { x: 0, y: 0 },
+
+      // Tiempos.
+      countdownSeconds: 30.0,
+      explosionDuration: 0.85,
+      nextAttackDelay: 0.65,
+
+      // Condición de derrota.
+      maxShipHits: 3,
+
+      // Visuales.
+      gridStep: 50,
+      previewLineLength: 1500,
+      missileTrailLength: 24
+    };
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const ui = {
+      angleDisplay: document.getElementById("angleDisplay"),
+      angleInput: document.getElementById("angleInput"),
+      angleMinus1: document.getElementById("angleMinus1"),
+      anglePlus1: document.getElementById("anglePlus1"),
+      angleMinusFine: document.getElementById("angleMinusFine"),
+      anglePlusFine: document.getElementById("anglePlusFine"),
+      fireButton: document.getElementById("fireButton"),
+      pauseButton: document.getElementById("pauseButton"),
+      soundButton: document.getElementById("soundButton"),
+      restartButton: document.getElementById("restartButton"),
+
+      hudMessage: document.getElementById("hudMessage"),
+      stateText: document.getElementById("stateText"),
+        globalTimeText: document.getElementById("globalTimeText"),
+        spawnTimeText: document.getElementById("spawnTimeText"),
+        countdownText: document.getElementById("countdownText"),
+      p0Text: document.getElementById("p0Text"),
+      pfText: document.getElementById("pfText"),
+      enemySpeedText: document.getElementById("enemySpeedText"),
+      defenderSpeedText: document.getElementById("defenderSpeedText"),
+      interceptsText: document.getElementById("interceptsText"),
+      hitsText: document.getElementById("hitsText"),
+      attackNumberText: document.getElementById("attackNumberText")
+    };
+
+    let game = null;
+    let lastTime = performance.now();
+
+    // ============================================================
+    // Audio generado con Web Audio API.
+    // No usa archivos externos, así que es ligero para GitHub Pages.
+    // El navegador exige una interacción del usuario antes de activar sonido.
+    // ============================================================
+
+    let audioCtx = null;
+    let masterGain = null;
+    let soundEnabled = false;
+    let lastCountdownBeep = null;
+
+    async function initAudio() {
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+          if (!AudioContextClass) {
+            game.message = "Este navegador no soporta Web Audio API.";
+            return false;
+          }
+
+          audioCtx = new AudioContextClass();
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = 0.65;
+          masterGain.connect(audioCtx.destination);
+        }
+
+        // En Chrome/Edge/Safari el contexto puede nacer suspendido.
+        // Esta llamada debe ocurrir dentro de un click real del usuario.
+        if (audioCtx.state === "suspended") {
+          await audioCtx.resume();
+        }
+
+        soundEnabled = audioCtx.state === "running";
+        return soundEnabled;
+      } catch (error) {
+        console.error("No se pudo iniciar el audio:", error);
+        soundEnabled = false;
+        game.message = "No se pudo activar el sonido en este navegador.";
+        return false;
+      }
+    }
+
+    async function setSoundEnabled(enabled) {
+      if (enabled) {
+        const ok = await initAudio();
+
+        if (ok) {
+          ui.soundButton.textContent = "🔊 Silenciar sonido";
+          // game.message = "Sonido activado.";
+          playActivationSound();
+        } else {
+          ui.soundButton.textContent = "🔇 Activar sonido";
+          game.message = "El navegador bloqueó el audio. Haz clic otra vez en Activar sonido.";
+        }
+      } else {
+        soundEnabled = false;
+        ui.soundButton.textContent = "🔇 Activar sonido";
+        // game.message = "Sonido silenciado.";
+      }
+    }
+
+    function canPlaySound() {
+      return soundEnabled && audioCtx && audioCtx.state === "running" && masterGain;
+    }
+
+    function playTone(freq, duration, type = "sine", volume = 0.22, endFreq = null) {
+      if (!canPlaySound()) return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(Math.max(1, freq), now);
+
+      if (endFreq !== null) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(1, endFreq), now + duration);
+      }
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.03);
+    }
+
+    function playNoiseBurst(duration = 0.2, volume = 0.22) {
+      if (!canPlaySound()) return;
+
+      const sampleRate = audioCtx.sampleRate;
+      const bufferSize = Math.max(1, Math.floor(sampleRate * duration));
+      const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+        const decay = 1 - i / bufferSize;
+        data[i] = (Math.random() * 2 - 1) * decay;
+      }
+
+      const now = audioCtx.currentTime;
+      const source = audioCtx.createBufferSource();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1200, now);
+      filter.frequency.exponentialRampToValueAtTime(260, now + duration);
+
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      source.buffer = buffer;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      source.start(now);
+      source.stop(now + duration);
+    }
+
+    function playActivationSound() {
+      playTone(660, 0.10, "sine", 0.22, 880);
+      setTimeout(() => playTone(990, 0.10, "sine", 0.18, 1320), 90);
+    }
+
+    function playCountdownBeep() {
+      playTone(880, 0.09, "sine", 0.18);
+    }
+
+    function playEnemyEnterSound() {
+      playTone(260, 0.14, "sawtooth", 0.20, 520);
+      setTimeout(() => playTone(520, 0.12, "sawtooth", 0.16), 90);
+    }
+
+    function playDefenderLaunchSound() {
+      playTone(520, 0.07, "square", 0.20, 900);
+      setTimeout(() => playTone(740, 0.08, "square", 0.16, 980), 45);
+    }
+
+    function playInterceptExplosionSound() {
+      playNoiseBurst(0.18, 0.22);
+      playTone(190, 0.11, "sawtooth", 0.22, 85);
+      setTimeout(() => playTone(95, 0.18, "triangle", 0.18, 55), 60);
+    }
+
+    function playShipImpactSound() {
+      playNoiseBurst(0.32, 0.25);
+      playTone(95, 0.22, "sawtooth", 0.24, 48);
+      setTimeout(() => playTone(58, 0.30, "triangle", 0.20, 36), 120);
+    }
+
+    function playSinkingSound() {
+      playTone(75, 0.45, "triangle", 0.22, 42);
+      setTimeout(() => playTone(50, 0.60, "triangle", 0.20, 28), 230);
+      setTimeout(() => playNoiseBurst(0.50, 0.14), 280);
+    }
+
+    function createInitialGameState() {
+      return {
+        angleDeg: 35.0,
+        paused: false,
+        gameOver: false,
+        globalTime: 0,
+
+        state: "countdown",
+        countdown: CONFIG.countdownSeconds,
+        postEventTimer: 0,
+
+        attackNumber: 1,
+        interceptedCount: 0,
+        shipHits: 0,
+
+        defenderSpeed: 150.0,
+
+        enemy: null,
+        defender: null,
+        explosions: [],
+        shipSinkingProgress: 0,
+
+        message: ""
+      };
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.cssWidth = rect.width;
+      canvas.cssHeight = rect.height;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function round1(value) {
+      return Math.round(value * 10) / 10;
+    }
+
+    function round2(value) {
+      return Math.round(value * 100) / 100;
+    }
+
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function randRound1(min, max) {
+      return round1(rand(min, max));
+    }
+
+    function gaussianRandom(mean = 0, std = 1) {
+      let u = 0;
+      let v = 0;
+
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+
+      const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+      return mean + z * std;
+    }
+
+    function vectorLength(v) {
+      return Math.hypot(v.x, v.y);
+    }
+
+    function normalize(v) {
+      const len = vectorLength(v);
+      if (len === 0) return { x: 0, y: 0 };
+      return { x: v.x / len, y: v.y / len };
+    }
+
+    function distance(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function worldWidth() {
+      return CONFIG.xMax - CONFIG.xMin;
+    }
+
+    function worldHeight() {
+      return CONFIG.yMax - CONFIG.yMin;
+    }
+
+    function getScale() {
+      const w = canvas.cssWidth || canvas.width;
+      const h = canvas.cssHeight || canvas.height;
+
+      const padding = 34;
+      const sx = (w - 2 * padding) / worldWidth();
+      const sy = (h - 2 * padding) / worldHeight();
+
+      return Math.min(sx, sy);
+    }
+
+    function worldToScreen(p) {
+      const w = canvas.cssWidth || canvas.width;
+      const h = canvas.cssHeight || canvas.height;
+      const scale = getScale();
+
+      const drawW = worldWidth() * scale;
+      const drawH = worldHeight() * scale;
+
+      const offsetX = (w - drawW) / 2;
+      const offsetY = (h - drawH) / 2;
+
+      return {
+        x: offsetX + (p.x - CONFIG.xMin) * scale,
+        y: offsetY + (CONFIG.yMax - p.y) * scale
+      };
+    }
+
+    function lengthToScreen(value) {
+      return value * getScale();
+    }
+
+    function isOutsideWorld(p, margin = 50) {
+      return (
+        p.x < CONFIG.xMin - margin ||
+        p.x > CONFIG.xMax + margin ||
+        p.y < CONFIG.yMin - margin ||
+        p.y > CONFIG.yMax + margin
+      );
+    }
+
+    function randomPointInsideShip() {
+      // Genera un punto aleatorio dentro de la elipse del barco.
+      const theta = rand(0, Math.PI * 2);
+      const r = Math.sqrt(Math.random());
+
+      const x = CONFIG.shipCenter.x + Math.cos(theta) * CONFIG.shipRadiusX * r;
+      const y = CONFIG.shipCenter.y + Math.sin(theta) * CONFIG.shipRadiusY * r;
+
+      return {
+        x: round1(x),
+        y: round1(y)
+      };
+    }
+
+    function generateEnemySpeed(attackNumber) {
+      const trend = CONFIG.enemyBaseSpeed + CONFIG.enemySpeedGrowth * (attackNumber - 1);
+      const noisy = trend + gaussianRandom(0, CONFIG.enemySpeedNoise);
+      return round1(clamp(noisy, CONFIG.enemyMinSpeed, CONFIG.enemyMaxSpeed));
+    }
+
+    function createNewAttack() {
+      const p0 = {
+        x: CONFIG.xMax,
+        y: randRound1(CONFIG.yMin + 80, CONFIG.yMax - 50)
+      };
+
+      const pf = randomPointInsideShip();
+      const speed = generateEnemySpeed(game.attackNumber);
+        const defenderSpeed = randRound1(CONFIG.defenderSpeedMin, CONFIG.defenderSpeedMax);
+        game.defenderSpeed = defenderSpeed;
+      const spawnTime = game.globalTime + CONFIG.countdownSeconds;
+
+      const dir = normalize({
+        x: pf.x - p0.x,
+        y: pf.y - p0.y
+      });
+
+      const velocity = {
+        x: round2(dir.x * speed),
+        y: round2(dir.y * speed)
+      };
+
+      game.enemy = {
+        p0,
+        pf,
+        spawnTime,
+        position: { ...p0 },
+        velocity,
+        acceleration: { ...CONFIG.enemyAcceleration },
+        speed,
+        active: false,
+        trail: []
+      };
+
+      game.defender = null;
+      game.countdown = CONFIG.countdownSeconds;
+      game.state = "countdown";
+      lastCountdownBeep = null;
+
+      game.message =
+      `Se aproxima un misil con velocidad constante de ${speed.toFixed(1)} m/s. ` +
+  `Aparecerá en t=${spawnTime.toFixed(1)} s por P₀=(${p0.x.toFixed(1)}, ${p0.y.toFixed(1)}) m ` +
+  `hacia Pᶠ=(${pf.x.toFixed(1)}, ${pf.y.toFixed(1)}) m. ` +
+  `Velocidad defensiva disponible: ${game.defenderSpeed.toFixed(1)} m/s. ` +
+  `Ajusta el ángulo y espera a que el misil aparezca.`;
+    }
+
+    function startEnemyMotion() {
+      if (!game.enemy) return;
+      game.enemy.active = true;
+      game.enemy.position = { ...game.enemy.p0 };
+      game.enemy.trail = [];
+      game.state = "enemy-active";
+      playEnemyEnterSound();
+      game.message = "¡Misil enemigo en escena! Dispara cuando tu cálculo esté listo.";
+    }
+
+    function fireDefender() {
+        if (game.paused || game.gameOver) return;
+
+        // El jugador sólo puede disparar cuando el misil enemigo ya está visible.
+        if (!game.enemy || !game.enemy.active) return;
+
+        // Sólo puede haber un misil defensor activo a la vez.
+        if (game.defender && game.defender.active) return;
+
+        const angle = degToRad(game.angleDeg);
+
+        const velocity = {
+            x: Math.cos(angle) * game.defenderSpeed,
+            y: Math.sin(angle) * game.defenderSpeed
+        };
+
+        game.defender = {
+            position: { ...CONFIG.defenderBase },
+            velocity,
+            acceleration: { ...CONFIG.defenderAcceleration },
+            active: true,
+            trail: [],
+            launchTime: game.globalTime
+        };
+
+        playDefenderLaunchSound();
+
+        game.message =
+            `Misil defensor lanzado en t=${game.globalTime.toFixed(1)} s ` +
+            `con ángulo ${game.angleDeg.toFixed(1)}°.`;
+    }
+
+    function createExplosion(position, type = "air") {
+      const color =
+        type === "ship" ? "255, 95, 80" :
+        type === "sink" ? "90, 180, 255" :
+        "255, 220, 120";
+
+      game.explosions.push({
+        position: { ...position },
+        age: 0,
+        duration: CONFIG.explosionDuration,
+        type,
+        color,
+        particles: Array.from({ length: type === "sink" ? 46 : 28 }, () => {
+          const angle = rand(0, Math.PI * 2);
+          const speed = rand(40, type === "sink" ? 220 : 160);
+
+          return {
+            angle,
+            speed,
+            size: rand(0.5, 1.8)
+          };
+        })
+      });
+    }
+
+    function handleInterception() {
+      const p = {
+        x: (game.enemy.position.x + game.defender.position.x) / 2,
+        y: (game.enemy.position.y + game.defender.position.y) / 2
+      };
+
+      createExplosion(p, "air");
+      playInterceptExplosionSound();
+
+      game.interceptedCount += 1;
+      game.enemy = null;
+      game.defender = null;
+
+      game.state = "post-event";
+      game.postEventTimer = CONFIG.nextAttackDelay;
+      game.attackNumber += 1;
+      game.message = "¡Intercepción exitosa! Nuevo ataque en preparación.";
+    }
+
+    function handleShipImpact() {
+      createExplosion(game.enemy.position, "ship");
+      playShipImpactSound();
+
+      game.shipHits += 1;
+      game.enemy = null;
+      game.defender = null;
+
+      if (game.shipHits >= CONFIG.maxShipHits) {
+        game.gameOver = true;
+        game.state = "game-over";
+        game.message = `El barco ha sido hundido. Pudiste repeler con éxito ${game.interceptedCount} ataques.`;
+        createExplosion(CONFIG.shipCenter, "sink");
+        playSinkingSound();
+      } else {
+        const remaining = CONFIG.maxShipHits - game.shipHits;
+        game.state = "post-event";
+        game.postEventTimer = CONFIG.nextAttackDelay;
+        game.attackNumber += 1;
+
+        game.message =
+          `Impacto recibido. El barco sólo podrá soportar ${remaining} ` +
+          `${remaining === 1 ? "impacto más" : "impactos más"}.`;
+      }
+    }
+
+    function handleFriendlyFireImpact() {
+      const impactPosition = game.defender ? { ...game.defender.position } : { ...CONFIG.shipCenter };
+
+      createExplosion(impactPosition, "ship");
+      playShipImpactSound();
+
+      game.shipHits += 1;
+      game.defender = null;
+
+      if (game.shipHits >= CONFIG.maxShipHits) {
+        game.gameOver = true;
+        game.state = "game-over";
+        game.enemy = null;
+        game.message = `El barco ha sido hundido por fuego amigo. Pudiste repeler con éxito ${game.interceptedCount} ataques.`;
+        createExplosion(CONFIG.shipCenter, "sink");
+        playSinkingSound();
+      } else {
+        const remaining = CONFIG.maxShipHits - game.shipHits;
+        game.message =
+          `¡Fuego amigo! Tu misil impactó el barco. ` +
+          `El barco sólo podrá soportar ${remaining} ` +
+          `${remaining === 1 ? "impacto más" : "impactos más"}.`;
+      }
+    }
+
+    function updateMissile(missile, dt) {
+      missile.velocity.x += missile.acceleration.x * dt;
+      missile.velocity.y += missile.acceleration.y * dt;
+
+      missile.position.x += missile.velocity.x * dt;
+      missile.position.y += missile.velocity.y * dt;
+
+      missile.trail.push({ ...missile.position });
+
+      if (missile.trail.length > CONFIG.missileTrailLength) {
+        missile.trail.shift();
+      }
+    }
+
+    function isMissileAtShip(missile, missileRadius) {
+      if (!missile || !missile.active) return false;
+
+      const p = missile.position;
+      const cx = CONFIG.shipCenter.x;
+      const cy = CONFIG.shipCenter.y;
+
+      // Inflamos ligeramente la elipse con el radio del misil.
+      // Esto permite detectar impacto entre una región circular y el barco elíptico.
+      const rx = CONFIG.shipRadiusX + missileRadius;
+      const ry = CONFIG.shipRadiusY + missileRadius;
+
+      const value =
+        ((p.x - cx) * (p.x - cx)) / (rx * rx) +
+        ((p.y - cy) * (p.y - cy)) / (ry * ry);
+
+      return value <= 1;
+    }
+
+    function isEnemyAtShip() {
+      return isMissileAtShip(game.enemy, CONFIG.enemyMissileRadius);
+    }
+
+    function isDefenderAtShip() {
+      return isMissileAtShip(game.defender, CONFIG.defenderMissileRadius);
+    }
+
+    function updateExplosions(dt) {
+      for (const explosion of game.explosions) {
+        explosion.age += dt;
+      }
+
+      game.explosions = game.explosions.filter(e => e.age < e.duration);
+    }
+
+    function updateGame(dt) {
+        if (game.paused || game.gameOver) {
+            if (game.gameOver) {
+            game.shipSinkingProgress = clamp(game.shipSinkingProgress + dt * 0.18, 0, 1);
+            }
+
+            updateExplosions(dt);
+            return;
+        }
+
+        // Tiempo global del juego.
+        // Este tiempo se pausa cuando el juego se pausa.
+        game.globalTime += dt;
+
+        updateExplosions(dt);
+
+        // El misil defensor puede moverse incluso durante la cuenta regresiva,
+        // aunque el misil enemigo todavía no haya aparecido.
+        if (game.defender && game.defender.active) {
+            updateMissile(game.defender, dt);
+
+            if (isDefenderAtShip()) {
+            handleFriendlyFireImpact();
+            return;
+            }
+
+            if (isOutsideWorld(game.defender.position, 60)) {
+            game.defender.active = false;
+            game.defender = null;
+            }
+        }
+
+        if (game.state === "countdown") {
+            game.countdown -= dt;
+
+            const currentSecond = Math.ceil(game.countdown);
+            if (currentSecond !== lastCountdownBeep && currentSecond <= 5 && currentSecond > 0) {
+            playCountdownBeep();
+            lastCountdownBeep = currentSecond;
+            }
+
+            if (game.countdown <= 0) {
+            game.countdown = 0;
+            startEnemyMotion();
+            }
+        }
+
+        if (game.state === "enemy-active") {
+            if (game.enemy && game.enemy.active) {
+            updateMissile(game.enemy, dt);
+            }
+
+            if (game.enemy && game.defender && game.defender.active) {
+            const d = distance(game.enemy.position, game.defender.position);
+            const overlapDistance = CONFIG.enemyMissileRadius + CONFIG.defenderMissileRadius;
+
+            if (d <= overlapDistance) {
+                handleInterception();
+                return;
+            }
+            }
+
+            if (game.enemy && isEnemyAtShip()) {
+            handleShipImpact();
+            return;
+            }
+
+            if (game.enemy && isOutsideWorld(game.enemy.position, 100)) {
+            game.enemy = null;
+            game.state = "post-event";
+            game.postEventTimer = CONFIG.nextAttackDelay;
+            game.attackNumber += 1;
+            game.message = "El misil enemigo salió del área. Nuevo ataque en preparación.";
+            }
+        }
+
+        if (game.state === "post-event") {
+            game.postEventTimer -= dt;
+
+            if (game.postEventTimer <= 0) {
+            createNewAttack();
+            }
+        }
+    }
+
+    function setAngle(newAngle) {
+      game.angleDeg = round1(clamp(newAngle, 0, 180));
+      ui.angleInput.value = game.angleDeg.toFixed(1);
+      ui.angleDisplay.textContent = game.angleDeg.toFixed(1);
+    }
+
+    function changeAngle(delta) {
+      setAngle(game.angleDeg + delta);
+    }
+
+    function togglePause() {
+      if (game.gameOver) return;
+
+      game.paused = !game.paused;
+      ui.pauseButton.textContent = game.paused ? "Reanudar" : "Pausar";
+
+      if (game.paused) {
+        game.message = "Juego pausado. Presiona Enter o el botón para continuar.";
+      } else if (game.state === "countdown") {
+        game.message =
+          `Se aproxima un misil. Entrada en escena en ${game.countdown.toFixed(1)} s.`;
+      } else {
+        game.message = "Juego reanudado.";
+      }
+    }
+
+    function restartGame() {
+      game = createInitialGameState();
+      setAngle(game.angleDeg);
+      createNewAttack();
+      ui.pauseButton.textContent = "Pausar";
+    }
+
+    function updateUI() {
+      ui.angleDisplay.textContent = game.angleDeg.toFixed(1);
+
+      let stateLabel = "Preparando";
+
+      if (game.paused) stateLabel = "Pausado";
+      else if (game.state === "countdown") stateLabel = "Preparando";
+      else if (game.state === "enemy-active") stateLabel = "Misil en escena";
+      else if (game.state === "post-event") stateLabel = "Nuevo ataque";
+      else if (game.state === "game-over") stateLabel = "Finalizado";
+
+      ui.stateText.textContent = stateLabel;
+        ui.globalTimeText.textContent = `${game.globalTime.toFixed(1)} s`;
+
+        ui.spawnTimeText.textContent =
+        game.enemy ? `${game.enemy.spawnTime.toFixed(1)} s` : "---";
+
+        ui.countdownText.textContent =
+        game.state === "countdown" ? `${game.countdown.toFixed(1)} s` : "---";
+
+      if (game.enemy) {
+        ui.p0Text.textContent =
+          `(${game.enemy.p0.x.toFixed(1)}, ${game.enemy.p0.y.toFixed(1)}) m`;
+
+        ui.pfText.textContent =
+          `(${game.enemy.pf.x.toFixed(1)}, ${game.enemy.pf.y.toFixed(1)}) m`;
+
+        ui.enemySpeedText.textContent = `${game.enemy.speed.toFixed(1)} m/s`;
+      } else {
+        ui.p0Text.textContent = "---";
+        ui.pfText.textContent = "---";
+        ui.enemySpeedText.textContent = "---";
+      }
+
+      ui.defenderSpeedText.textContent = `${game.defenderSpeed.toFixed(1)} m/s`;
+      ui.interceptsText.textContent = String(game.interceptedCount);
+      ui.hitsText.textContent = `${game.shipHits}/${CONFIG.maxShipHits}`;
+      ui.attackNumberText.textContent = String(game.attackNumber);
+
+      ui.fireButton.disabled =
+        game.paused ||
+        game.gameOver ||
+        !game.enemy ||
+        !game.enemy.active ||
+        (game.defender && game.defender.active);
+
+      ui.hudMessage.textContent = game.message;
+    }
+
+    function drawBackground() {
+      const w = canvas.cssWidth || canvas.width;
+      const h = canvas.cssHeight || canvas.height;
+
+      const gradient = ctx.createLinearGradient(0, 0, w, h);
+      gradient.addColorStop(0, "#0b3552");
+      gradient.addColorStop(0.55, "#082338");
+      gradient.addColorStop(1, "#051420");
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+
+      // Patrón suave de oleaje.
+      ctx.save();
+      ctx.globalAlpha = 0.13;
+      ctx.lineWidth = 1;
+
+      for (let y = -40; y < h + 40; y += 22) {
+        ctx.beginPath();
+
+        for (let x = -30; x < w + 30; x += 18) {
+          const yy = y + Math.sin(x * 0.035 + performance.now() * 0.0007) * 4;
+          if (x === -30) ctx.moveTo(x, yy);
+          else ctx.lineTo(x, yy);
+        }
+
+        ctx.strokeStyle = "#7bdcff";
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawGrid() {
+      const scale = getScale();
+
+      ctx.save();
+
+      ctx.lineWidth = 1;
+      ctx.font = "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+
+      for (let x = Math.ceil(CONFIG.xMin / CONFIG.gridStep) * CONFIG.gridStep; x <= CONFIG.xMax; x += CONFIG.gridStep) {
+        const a = worldToScreen({ x, y: CONFIG.yMin });
+        const b = worldToScreen({ x, y: CONFIG.yMax });
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+
+        ctx.strokeStyle = x === 0 ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.09)";
+        ctx.lineWidth = x === 0 ? 1.4 : 1;
+        ctx.stroke();
+
+        const label = worldToScreen({ x, y: CONFIG.yMin });
+        ctx.fillStyle = "rgba(220,245,255,0.58)";
+        ctx.fillText(String(x), label.x, label.y + 6);
+      }
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+
+      for (let y = Math.ceil(CONFIG.yMin / CONFIG.gridStep) * CONFIG.gridStep; y <= CONFIG.yMax; y += CONFIG.gridStep) {
+        const a = worldToScreen({ x: CONFIG.xMin, y });
+        const b = worldToScreen({ x: CONFIG.xMax, y });
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+
+        ctx.strokeStyle = y === 0 ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.09)";
+        ctx.lineWidth = y === 0 ? 1.4 : 1;
+        ctx.stroke();
+
+        const label = worldToScreen({ x: CONFIG.xMin, y });
+        ctx.fillStyle = "rgba(220,245,255,0.58)";
+        ctx.fillText(String(y), label.x - 6, label.y);
+      }
+
+      // Borde del dominio.
+      const p1 = worldToScreen({ x: CONFIG.xMin, y: CONFIG.yMin });
+      const p2 = worldToScreen({ x: CONFIG.xMax, y: CONFIG.yMax });
+
+      ctx.strokeStyle = "rgba(160,225,255,0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(p1.x, p2.y, p2.x - p1.x, p1.y - p2.y);
+
+      ctx.restore();
+    }
+
+    function drawLaserLine(aWorld, bWorld, color, alpha = 0.6) {
+      const a = worldToScreen(aWorld);
+      const b = worldToScreen(bWorld);
+
+      ctx.save();
+
+      // Línea base tenue.
+      ctx.globalAlpha = alpha * 0.35;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 7 + Math.random() * 2.5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+
+      // Núcleo irregular.
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.3 + Math.random() * 2.2;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawEnemyTrajectory() {
+      if (!game.enemy) return;
+
+      drawLaserLine(game.enemy.p0, game.enemy.pf, "rgba(80, 190, 255, 1)", 0.72);
+
+      const p0 = worldToScreen(game.enemy.p0);
+      const pf = worldToScreen(game.enemy.pf);
+
+      ctx.save();
+
+      ctx.fillStyle = "rgba(80, 190, 255, 0.95)";
+      ctx.beginPath();
+      ctx.arc(p0.x, p0.y, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 95, 95, 0.95)";
+      ctx.beginPath();
+      ctx.arc(pf.x, pf.y, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawDefenderPreview() {
+      const angle = degToRad(game.angleDeg);
+
+      const start = CONFIG.defenderBase;
+      const end = {
+        x: start.x + Math.cos(angle) * CONFIG.previewLineLength,
+        y: start.y + Math.sin(angle) * CONFIG.previewLineLength
+      };
+
+      drawLaserLine(start, end, "rgba(255, 72, 72, 1)", 0.5);
+    }
+
+    function drawShip() {
+      const center = worldToScreen(CONFIG.shipCenter);
+      const rx = lengthToScreen(CONFIG.shipRadiusX);
+      const ry = lengthToScreen(CONFIG.shipRadiusY);
+
+      const damage = game.shipHits / CONFIG.maxShipHits;
+      const sink = game.shipSinkingProgress;
+
+      const scaleY = Math.max(0.08, 1 - sink * 0.88);
+      const alpha = Math.max(0.25, 1 - sink * 0.6);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      // Sombra.
+      ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+      ctx.beginPath();
+      ctx.ellipse(center.x + 4, center.y + 6, rx * 1.08, ry * 1.25 * scaleY, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Color según daño.
+      const hullColor =
+        damage >= 0.66 ? "#5b6d76" :
+        damage >= 0.33 ? "#7896a6" :
+        "#9ec7d9";
+
+      // Casco.
+      ctx.fillStyle = hullColor;
+      ctx.strokeStyle = "rgba(255,255,255,0.65)";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.ellipse(center.x, center.y, rx, ry * scaleY, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Cubierta.
+      ctx.fillStyle = damage >= 0.66 ? "#2f3d44" : "#244a61";
+      ctx.beginPath();
+      ctx.ellipse(center.x, center.y, rx * 0.52, ry * 0.45 * scaleY, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Punta del barco.
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.beginPath();
+      ctx.arc(center.x + rx * 0.72, center.y, Math.max(2, ry * 0.22 * scaleY), 0, Math.PI * 2);
+      ctx.fill();
+
+      // Incendios o daño visual.
+      if (game.shipHits > 0 && !game.gameOver) {
+        for (let i = 0; i < game.shipHits; i++) {
+          const ox = (-0.35 + i * 0.35) * rx;
+          const oy = Math.sin(performance.now() * 0.005 + i) * ry * 0.18;
+
+          ctx.fillStyle = "rgba(255, 95, 40, 0.9)";
+          ctx.beginPath();
+          ctx.arc(center.x + ox, center.y + oy, 3 + Math.random() * 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "rgba(255, 210, 90, 0.8)";
+          ctx.beginPath();
+          ctx.arc(center.x + ox, center.y + oy - 1, 1.8 + Math.random() * 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Si se hunde, se mezcla con el mar.
+      if (game.gameOver) {
+        ctx.globalAlpha = sink * 0.9;
+        ctx.fillStyle = "rgba(5, 25, 42, 0.92)";
+        ctx.beginPath();
+        ctx.ellipse(center.x, center.y, rx * 1.1, ry * 1.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function drawBase() {
+      const p = worldToScreen(CONFIG.defenderBase);
+      const r = lengthToScreen(18);
+
+      ctx.save();
+
+      ctx.fillStyle = "rgba(255, 75, 75, 0.24)";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ff4c4c";
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      const angle = degToRad(game.angleDeg);
+      const tip = {
+        x: p.x + Math.cos(angle) * r * 2.5,
+        y: p.y - Math.sin(angle) * r * 2.5
+      };
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(tip.x, tip.y);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawTrail(points, color) {
+      if (!points || points.length < 2) return;
+
+      ctx.save();
+      ctx.lineCap = "round";
+
+      for (let i = 1; i < points.length; i++) {
+        const a = worldToScreen(points[i - 1]);
+        const b = worldToScreen(points[i]);
+
+        const t = i / points.length;
+        ctx.globalAlpha = t * 0.55;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1 + t * 5;
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawMissile(missile, color, radiusWorld) {
+      if (!missile || !missile.active) return;
+
+      drawTrail(missile.trail, color);
+
+      const p = worldToScreen(missile.position);
+      const r = lengthToScreen(radiusWorld);
+
+      ctx.save();
+
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = color;
+      ctx.fillStyle = color;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.beginPath();
+      ctx.arc(p.x - r * 0.25, p.y - r * 0.25, r * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawExplosions() {
+      ctx.save();
+
+      for (const explosion of game.explosions) {
+        const t = explosion.age / explosion.duration;
+        const p = worldToScreen(explosion.position);
+
+        const baseRadius = lengthToScreen(explosion.type === "sink" ? 80 : 45);
+        const radius = baseRadius * (0.4 + t * 2.2);
+
+        ctx.globalAlpha = 1 - t;
+        ctx.fillStyle = `rgba(${explosion.color}, ${0.18 * (1 - t)})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = `rgba(${explosion.color}, ${0.85 * (1 - t)})`;
+        ctx.lineWidth = 2 + 5 * (1 - t);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius * 0.72, 0, Math.PI * 2);
+        ctx.stroke();
+
+        for (const particle of explosion.particles) {
+          const dist = lengthToScreen(particle.speed * t);
+          const x = p.x + Math.cos(particle.angle) * dist;
+          const y = p.y + Math.sin(particle.angle) * dist;
+
+          ctx.fillStyle = `rgba(${explosion.color}, ${0.95 * (1 - t)})`;
+          ctx.beginPath();
+          ctx.arc(x, y, particle.size * (1 + t), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawGameOverOverlay() {
+      if (!game.gameOver) return;
+
+      const w = canvas.cssWidth || canvas.width;
+      const h = canvas.cssHeight || canvas.height;
+
+      ctx.save();
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 34px system-ui";
+      ctx.fillText("Defensa finalizada", w / 2, h / 2 - 42);
+
+      ctx.fillStyle = "#d9f5ff";
+      ctx.font = "600 19px system-ui";
+      ctx.fillText(
+        `Pudiste repeler con éxito ${game.interceptedCount} ataques.`,
+        w / 2,
+        h / 2 + 2
+      );
+
+      ctx.fillStyle = "#9fc2d8";
+      ctx.font = "500 15px system-ui";
+      ctx.fillText(
+        "Presiona Reiniciar para intentarlo de nuevo.",
+        w / 2,
+        h / 2 + 36
+      );
+
+      ctx.restore();
+    }
+
+    function drawPauseOverlay() {
+      if (!game.paused || game.gameOver) return;
+
+      const w = canvas.cssWidth || canvas.width;
+      const h = canvas.cssHeight || canvas.height;
+
+      ctx.save();
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 32px system-ui";
+      ctx.fillText("Pausa", w / 2, h / 2);
+
+      ctx.fillStyle = "#bfeeff";
+      ctx.font = "500 15px system-ui";
+      ctx.fillText("Presiona Enter para continuar", w / 2, h / 2 + 34);
+
+      ctx.restore();
+    }
+
+    function render() {
+      drawBackground();
+      drawGrid();
+
+      drawEnemyTrajectory();
+      drawDefenderPreview();
+
+      drawShip();
+      drawBase();
+
+      if (game.enemy && game.enemy.active) {
+        drawMissile(game.enemy, "rgba(80, 190, 255, 1)", CONFIG.enemyMissileRadius);
+      }
+
+      if (game.defender && game.defender.active) {
+        drawMissile(game.defender, "rgba(255, 72, 72, 1)", CONFIG.defenderMissileRadius);
+      }
+
+      drawExplosions();
+      drawPauseOverlay();
+      drawGameOverOverlay();
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      updateGame(dt);
+      updateUI();
+      render();
+
+      requestAnimationFrame(loop);
+    }
+
+    // ============================================================
+    // Eventos de interfaz
+    // ============================================================
+
+    ui.angleMinus1.addEventListener("click", () => changeAngle(-1));
+    ui.anglePlus1.addEventListener("click", () => changeAngle(1));
+    ui.angleMinusFine.addEventListener("click", () => changeAngle(-0.1));
+    ui.anglePlusFine.addEventListener("click", () => changeAngle(0.1));
+
+    ui.angleInput.addEventListener("change", () => {
+      const value = Number(ui.angleInput.value);
+      if (Number.isFinite(value)) {
+        setAngle(value);
+      } else {
+        setAngle(game.angleDeg);
+      }
+    });
+
+    ui.fireButton.addEventListener("click", fireDefender);
+    ui.pauseButton.addEventListener("click", togglePause);
+    ui.soundButton.addEventListener("click", () => setSoundEnabled(!soundEnabled));
+    ui.restartButton.addEventListener("click", restartGame);
+
+    window.addEventListener("keydown", (event) => {
+      const tag = document.activeElement.tagName.toLowerCase();
+      const typing = tag === "input" || tag === "textarea";
+
+      if (typing && event.key !== "Enter") return;
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        changeAngle(1);
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        changeAngle(-1);
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        changeAngle(0.1);
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        changeAngle(-0.1);
+      }
+
+      if (event.code === "Space") {
+        event.preventDefault();
+        fireDefender();
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        togglePause();
+      }
+    });
+
+    // ============================================================
+    // Inicio
+    // ============================================================
+
+    resizeCanvas();
+    game = createInitialGameState();
+    setAngle(game.angleDeg);
+    createNewAttack();
+    updateUI();
+
+    requestAnimationFrame((now) => {
+      lastTime = now;
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>
